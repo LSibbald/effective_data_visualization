@@ -1,6 +1,8 @@
 ---
 title: "exercises"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 date: "2026-11-04"
 ---
 
@@ -18,7 +20,7 @@ When you click the **Knit** button a document will be generated that includes bo
 ### Set-up
 ```{r}
 # list of packages to check and install if not installed
-packages <- c("tidyverse", "psych")
+packages <- c("tidyverse", "psych", "tinytex")
 
 # install packages that are not yet installed and load them
 # loop over packages in the packages list
@@ -32,6 +34,12 @@ for (package in packages){
   # load packages
   library(package, character.only = TRUE)
 }
+
+# Change to TRUE if you later want to convert this markdown to PDF
+install_tinytex_for_pdf = FALSE
+if (install_tinytex_for_pdf) {
+  tinytex::install_tinytex()
+}
 print("Installed and loaded packages successfully!")
 ```
 ### Histogram plot
@@ -43,4 +51,31 @@ data(bfi)
 # View the first few rows of the dataset
 head(bfi)
 ```
+The code below comes from the page describing the dataset (https://personality-project.org/r/html/bfi.html).
+```{r}
+keys.list <-
+  list(agree=c("-A1","A2","A3","A4","A5"),conscientious=c("C1","C2","C3","-C4","-C5"),
+extraversion=c("-E1","-E2","E3","E4","E5"),neuroticism=c("N1","N2","N3","N4","N5"),
+openness = c("O1","-O2","O3","O4","-O5")) 
+ scores <- scoreItems(keys.list,bfi,min=1,max=6) #specify the minimum and maximum values
+ 
+scores
 
+#show the use of the fa.lookup with a dictionary
+keys.lookup(keys.list,bfi.dictionary[,1:4])
+
+```
+
+```{r}
+scores
+
+```
+Maybe you would like to plot the distribution of age using a histogram, we can use ggplot2 for that. This package is build in the tidyverse package we loaded/installed earlier.
+For all plots in ggplot you first need to specify the mapping, which is done in the ggplot function, after that, you add your graph. In this case a histogram.
+For a detailed description see http://vissoc.co/makeplot.html#how-ggplot-works
+
+```{r}
+# basic histogram
+ggplot(data = bfi, mapping = aes(x=age)) +
+  geom_histogram()
+```
