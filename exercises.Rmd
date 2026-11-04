@@ -14,16 +14,33 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
+
+### Set-up
+```{r}
+# list of packages to check and install if not installed
+packages <- c("tidyverse", "psych")
+
+# install packages that are not yet installed and load them
+# loop over packages in the packages list
+for (package in packages){
+  # save a "TRUE" if the package is installed, save a "FALSE" when a package is not installed
+  installed <- require(package, character.only = TRUE)
+  # if the package is not installed, install it
+  if (!installed){
+    install.packages(package, dependencies = TRUE)
+  }
+  # load packages
+  library(package, character.only = TRUE)
+}
+print("Installed and loaded packages successfully!")
+```
+### Histogram plot
+```{r}
+# first load a dataset from the psych package
+# this dataset contains self-report data on the big five inventory and some extra variables
+data(bfi)
+
+# View the first few rows of the dataset
+head(bfi)
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
