@@ -57,8 +57,15 @@ keys.list <-
   list(agree=c("-A1","A2","A3","A4","A5"),conscientious=c("C1","C2","C3","-C4","-C5"),
 extraversion=c("-E1","-E2","E3","E4","E5"),neuroticism=c("N1","N2","N3","N4","N5"),
 openness = c("O1","-O2","O3","O4","-O5")) 
- scores <- scoreItems(keys.list,bfi,min=1,max=6) #specify the minimum and maximum values
- 
+# scores <- scoreItems(keys.list,bfi,min=1,max=6) #specify the minimum and maximum values
+scores <- scoreItems(
+  keys.list,
+  bfi,
+  min = 1,
+  max = 6,
+  totals = TRUE,
+  missing = TRUE
+)
 scores
 
 #show the use of the fa.lookup with a dictionary
@@ -67,8 +74,9 @@ keys.lookup(keys.list,bfi.dictionary[,1:4])
 ```
 
 ```{r}
-scores
-
+scores_df <- as.data.frame(scores$scores)
+head(scores_df)
+sum(is.na(scores_df$agree))
 ```
 Maybe you would like to plot the distribution of age using a histogram, we can use ggplot2 for that. This package is build in the tidyverse package we loaded/installed earlier.
 For all plots in ggplot you first need to specify the mapping, which is done in the ggplot function, after that, you add your graph. In this case a histogram.
@@ -78,4 +86,14 @@ For a detailed description see http://vissoc.co/makeplot.html#how-ggplot-works
 # basic histogram
 ggplot(data = bfi, mapping = aes(x=age)) +
   geom_histogram()
+```
+```{r}
+if (dim(bfi)[1] != dim(scores_df)[1]){
+  print(dim(bfi))
+  print(dim(scores_df))
+} else {
+  print("Succeeded!")
+  print(sum(is.na(scores_df)))
+}
+
 ```
