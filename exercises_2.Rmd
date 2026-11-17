@@ -19,7 +19,7 @@ When you click the **Knit** button a document will be generated that includes bo
 ### Set-up
 ```{r}
 # list of packages to check and install if not installed
-packages <- c("tidyverse", "psych", "tinytex")
+packages <- c("tidyverse", "psych", "tinytex", "ggplot2")
 
 # install packages that are not yet installed and load them
 # loop over packages in the packages list
