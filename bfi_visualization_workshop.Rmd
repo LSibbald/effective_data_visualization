@@ -1,9 +1,9 @@
 ---
-title: "exercises_2"
+title: "Data Visualization Workshop"
 output:
   pdf_document: default
   html_document: default
-date: "2026-11-12"
+date: "2026-11-19"
 ---
 
 ```{r setup, include=FALSE}
@@ -19,7 +19,7 @@ When you click the **Knit** button a document will be generated that includes bo
 ### Set-up
 ```{r}
 # list of packages to check and install if not installed
-packages <- c("tidyverse", "psych", "tinytex", "ggplot2")
+packages <- c("tidyverse", "psych", "tinytex", "ggplot2", "qgraph")
 
 # install packages that are not yet installed and load them
 # loop over packages in the packages list
@@ -253,5 +253,127 @@ ggsave("BFI_age_neuroticism.pdf", plot = p_scatter_groups,
        width = 6, height = 4, units = "in")
 # CHECK: Can a reader understand your axes, units, groups, and uncertainty?
 # Journal figures may have specific format/resolution requirements.
+```
+
+```{r}
+# ================================================================
+# OPTIONAL 1 | Heatmap
+# ================================================================
+# Select Big Five scale scores
+personality <- bfi_scored %>%
+  select(
+    Agreeableness,
+    Conscientiousness,
+    Extraversion,
+    Neuroticism,
+    Openness
+  )
+
+# Calculate correlation matrix
+cor_matrix <- cor(
+  personality,
+  use = "pairwise.complete.obs"
+)
+
+round(cor_matrix, 2)
+
+# Transform the matrix into long format
+cor_long <- as.data.frame(as.table(cor_matrix))
+head(cor_long)
+
+ggplot(cor_long, aes(
+  x = Var1,
+  y = Var2,
+  fill = Freq
+)) +
+  geom_tile() +
+  scale_fill_gradient2(
+    low = "#B2182B",
+    mid = "white",
+    high = "#2166AC",
+    midpoint = 0,
+    limits = c(-1, 1)
+  ) +
+  coord_equal() +
+  labs(
+    x = NULL,
+    y = NULL,
+    fill = "Correlation"
+  ) +
+  theme_minimal() +
+  geom_text(
+    aes(
+      label = sprintf("%.2f", Freq),
+      color = abs(Freq) > 0.5
+    ),
+    size = 3.5
+  ) +
+  scale_color_manual(
+    values = c("FALSE" = "black", "TRUE" = "white"),
+    guide = "none"
+  ) + 
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)
+  )
+```
+```{r}
+# Select the personality items
+items <- bfi_scored %>%
+  select(matches("^[ACENO][1-5]$"))
+
+# Calculate correlations
+item_cor <- cor(
+  items,
+  use = "pairwise.complete.obs"
+)
+
+# Create a network
+qgraph(
+  item_cor,
+  layout = "spring",
+  labels = colnames(items),
+  theme = "colorblind"
+)
+
+# Assign items to their corresponding dimensions
+groups <- list(
+  Agreeableness = grep("^A", colnames(items)),
+  Conscientiousness = grep("^C", colnames(items)),
+  Extraversion = grep("^E", colnames(items)),
+  Neuroticism = grep("^N", colnames(items)),
+  Openness = grep("^O", colnames(items))
+)
+
+qgraph(
+  item_cor,
+  layout = "spring",
+  labels = colnames(items),
+  groups = groups,
+  color = c(
+    "#4477AA",
+    "#EE6677",
+    "#228833",
+    "#CCBB44",
+    "#AA3377"
+  ),
+  theme = "colorblind"
+)
+
+# Omit edges with absolute correlations below a chosen threshold
+qgraph(
+  item_cor,
+  layout = "spring",
+  labels = colnames(items),
+  groups = groups,
+  color = c(
+    "#4477AA",
+    "#EE6677",
+    "#228833",
+    "#CCBB44",
+    "#AA3377"
+  ),
+  minimum = 0.30,
+  theme = "colorblind"
+)
 ```
 
