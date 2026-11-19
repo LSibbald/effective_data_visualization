@@ -19,7 +19,7 @@ When you click the **Knit** button a document will be generated that includes bo
 ### Set-up
 ```{r}
 # list of packages to check and install if not installed
-packages <- c("tidyverse", "psych", "tinytex", "ggplot2", "qgraph")
+packages <- c("tidyverse", "psych", "tinytex", "ggplot2", "qgraph", "rmarkdown")
 
 # install packages that are not yet installed and load them
 # loop over packages in the packages list
@@ -317,25 +317,58 @@ ggplot(cor_long, aes(
   )
 ```
 ```{r}
-# Select the personality items
+# -----------------------------------
+# 1. Prepare the personality items
+# -----------------------------------
+ 
+# Items requiring reverse coding
+reverse_items <- c(
+  "A1", "C4", "C5", "E1", "E2", "O2", "O5"
+)
+ 
+# Select the original items, excluding those requiring
+# reverse coding, and include their _R versions instead
 items <- bfi_scored %>%
-  select(matches("^[ACENO][1-5]$"))
-
+  select(
+    matches("^[ACENO][1-5]$"),
+    all_of(paste0(reverse_items, "_R"))
+  ) %>%
+  select(-all_of(reverse_items))
+ 
+# Remove _R suffix for cleaner labels
+colnames(items) <- sub("_R$", "", colnames(items))
+ 
+# Check that exactly 25 items are selected
+stopifnot(
+  ncol(items) == 25,
+  !anyDuplicated(colnames(items))
+)
+ 
 # Calculate correlations
 item_cor <- cor(
   items,
   use = "pairwise.complete.obs"
 )
-
-# Create a network
+ 
+ 
+# -----------------------------------
+# 2. Basic correlation network
+# -----------------------------------
+ 
+# Display all correlations without grouping
 qgraph(
   item_cor,
   layout = "spring",
   labels = colnames(items),
   theme = "colorblind"
 )
-
-# Assign items to their corresponding dimensions
+ 
+ 
+# -----------------------------------
+# 3. Grouped correlation network
+# -----------------------------------
+ 
+# Assign items to their personality dimensions
 groups <- list(
   Agreeableness = grep("^A", colnames(items)),
   Conscientiousness = grep("^C", colnames(items)),
@@ -343,35 +376,38 @@ groups <- list(
   Neuroticism = grep("^N", colnames(items)),
   Openness = grep("^O", colnames(items))
 )
-
+ 
+# Define node colors
+node_colors <- c(
+  "#4477AA",  # Agreeableness
+  "#EE6677",  # Conscientiousness
+  "#228833",  # Extraversion
+  "#CCBB44",  # Neuroticism
+  "#AA3377"   # Openness
+)
+ 
+# Display all correlations with grouped nodes
 qgraph(
   item_cor,
   layout = "spring",
   labels = colnames(items),
   groups = groups,
-  color = c(
-    "#4477AA",
-    "#EE6677",
-    "#228833",
-    "#CCBB44",
-    "#AA3377"
-  ),
+  color = node_colors,
   theme = "colorblind"
 )
-
-# Omit edges with absolute correlations below a chosen threshold
+ 
+ 
+# -----------------------------------
+# 4. Grouped network with threshold
+# -----------------------------------
+ 
+# Omit edges with absolute correlations below 0.30
 qgraph(
   item_cor,
   layout = "spring",
   labels = colnames(items),
   groups = groups,
-  color = c(
-    "#4477AA",
-    "#EE6677",
-    "#228833",
-    "#CCBB44",
-    "#AA3377"
-  ),
+  color = node_colors,
   minimum = 0.30,
   theme = "colorblind"
 )
